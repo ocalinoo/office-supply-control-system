@@ -1,0 +1,90 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id         String   @id @default(cuid())
+  username   String   @unique
+  password   String
+  role       String   @default("USER")  // ADMIN, USER, MANAGER
+  name       String
+  email      String?
+  privileges String?  // Comma-separated privileges: inventory,reports,users,settings
+  active     Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  logs       InventoryLog[]
+}
+
+model Category {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  color     String   @default("#3b82f6")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  items     Item[]
+}
+
+model Item {
+  id          String   @id @default(cuid())
+  name        String
+  sku         String   @unique
+  categoryId  String
+  category    Category @relation(fields: [categoryId], references: [id])
+  quantity    Int      @default(0)
+  minStock    Int      @default(10)
+  unit        String   @default("pcs")
+  location    String?
+  description String?
+  qrCode      String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  logs        InventoryLog[]
+  versions    VersionHistory[]
+}
+
+model InventoryLog {
+  id        String   @id @default(cuid())
+  itemId    String
+  item      Item     @relation(fields: [itemId], references: [id])
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
+  action    String   // IN, OUT, ADJUSTMENT, DELETE
+  quantity  Int
+  previous  Int
+  remark    String?
+  createdAt DateTime @default(now())
+}
+
+model VersionHistory {
+  id         String   @id @default(cuid())
+  itemId     String
+  item       Item     @relation(fields: [itemId], references: [id])
+  changes    String
+  changedBy  String
+  changedAt  DateTime @default(now())
+  snapshot   String
+}
+
+model Report {
+  id        String   @id @default(cuid())
+  type      String   // DAILY, WEEKLY, MONTHLY, HIGHLIGHT
+  period    String
+  data      String
+  createdAt DateTime @default(now())
+}
+
+model AIChatMessage {
+  id        String   @id @default(cuid())
+  question  String
+  answer    String
+  createdAt DateTime @default(now())
+}

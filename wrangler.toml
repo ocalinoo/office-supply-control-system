@@ -1,0 +1,14 @@
+[build]
+command = "npm run build"
+publish = ".next"
+
+[functions]
+directory = ".next/server"
+
+[[env]]
+name = "DATABASE_URL"
+value = "file:./prisma/dev.db"
+
+[[env]]
+name = "JWT_SECRET"
+value = "oscs-secret-key-change-in-production-2024"
