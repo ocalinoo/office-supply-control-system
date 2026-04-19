@@ -33,17 +33,18 @@ export async function GET(request: NextRequest) {
     });
 
     // Calculate total quantity per category
-    categories = categories.map(cat => ({
+    const categoriesWithQty = categories.map(cat => ({
       ...cat,
       totalQuantity: cat.items.reduce((sum, item) => sum + item.quantity, 0),
     }));
 
     // Filter out empty categories unless includeEmpty is true
+    let filteredCategories = categoriesWithQty;
     if (!includeEmpty) {
-      categories = categories.filter(cat => cat._count.items > 0);
+      filteredCategories = categoriesWithQty.filter(cat => cat._count.items > 0);
     }
 
-    return NextResponse.json(categories.map(cat => ({
+    return NextResponse.json(filteredCategories.map(cat => ({
       id: cat.id,
       name: cat.name,
       color: cat.color,
