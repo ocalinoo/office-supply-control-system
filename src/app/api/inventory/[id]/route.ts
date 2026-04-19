@@ -4,7 +4,7 @@ import { verifyToken } from "@/lib/auth";
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const authHeader = request.headers.get("authorization");
@@ -19,7 +19,7 @@ export async function PATCH(
       return NextResponse.json({ message: "Invalid token" }, { status: 401 });
     }
 
-    const { id } = params;
+    const { id } = await params;
     const data = await request.json();
 
     // Get old values for version history
