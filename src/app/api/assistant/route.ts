@@ -287,9 +287,9 @@ export async function POST(request: NextRequest) {
           const items = await prisma.item.findMany({
             where: {
               OR: [
-                { name: { contains: searchTerm, mode: "insensitive" } },
-                { sku: { contains: searchTerm, mode: "insensitive" } },
-                { description: { contains: searchTerm, mode: "insensitive" } },
+                { name: { contains: searchTerm } },
+                { sku: { contains: searchTerm } },
+                { description: { contains: searchTerm } },
               ],
             },
             include: { category: true },
@@ -337,7 +337,7 @@ export async function POST(request: NextRequest) {
         const categoryName = extractCategoryName(question);
         if (categoryName) {
           const category = await prisma.category.findFirst({
-            where: { name: { contains: categoryName, mode: "insensitive" } },
+            where: { name: { contains: categoryName } },
             include: {
               items: {
                 include: { category: true },
