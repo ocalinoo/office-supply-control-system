@@ -5,6 +5,7 @@ interface User {
   username: string;
   name: string;
   role: "ADMIN" | "USER";
+  privileges?: string;  // Comma-separated privileges from database
 }
 
 interface AppState {
