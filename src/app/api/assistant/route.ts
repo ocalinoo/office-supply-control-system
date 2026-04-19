@@ -130,22 +130,22 @@ function formatCategories(categories: any[]): string {
   if (categories.length === 0) {
     return responses.CATEGORIES_EMPTY();
   }
-  
+
   let message = "📂 **Kategori Barang**:\n\n";
-  
-  const sorted = categories.sort((a, b) => b.totalQuantity - a.totalQuantity);
-  
+
+  const sorted = categories.sort((a, b) => (b as any).totalQuantity - (a as any).totalQuantity);
+
   sorted.forEach((cat, index) => {
-    const percentage = cat.totalQuantity > 0 
-      ? `(${cat._count.items} item, ${(cat.totalQuantity).toLocaleString()} qty)`
+    const percentage = (cat as any).totalQuantity > 0
+      ? `(${(cat as any)._count.items} item, ${((cat as any).totalQuantity).toLocaleString()} qty)`
       : `(0 item)`;
     message += `${index + 1}. **${cat.name}** ${percentage}\n`;
   });
-  
-  const totalItems = categories.reduce((sum, c) => sum + c._count.items, 0);
-  const totalQty = categories.reduce((sum, c) => sum + c.totalQuantity, 0);
+
+  const totalItems = categories.reduce((sum, c) => sum + (c as any)._count.items, 0);
+  const totalQty = categories.reduce((sum, c) => sum + (c as any).totalQuantity, 0);
   message += `\n📊 **Total**: ${categories.length} kategori | ${totalItems.toLocaleString()} item | ${totalQty.toLocaleString()} quantity`;
-  
+
   return message;
 }
 
