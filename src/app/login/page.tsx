@@ -153,7 +153,7 @@ export default function LoginPage() {
           {/* Copyright */}
           <div className="mt-6 text-center">
             <p className="text-xs text-gray-600">
-              Copyright © 2024 Rifka Ashiyamawati - Farmers Market Green Sedayu
+              Copyright © 2026 Rifka Ashiyamawati - Farmers Market Green Sedayu
             </p>
           </div>
         </div>
