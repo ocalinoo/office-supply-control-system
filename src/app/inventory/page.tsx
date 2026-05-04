@@ -37,6 +37,7 @@ interface Item {
   minStock: number;
   unit: string;
   location: string | null;
+  price: number | null;
   description: string | null;
   category: {
     id: string;
@@ -77,6 +78,7 @@ export default function InventoryPage() {
     minStock: 10,
     unit: "pcs",
     location: "",
+    price: 0,
     description: "",
   });
 
@@ -349,11 +351,12 @@ export default function InventoryPage() {
       MinStock: item.minStock,
       Unit: item.unit,
       Location: item.location || "",
+      Price: item.price || 0,
       Description: item.description || "",
     }));
 
     const ws = XLSX.utils.json_to_sheet(data, {
-      header: ["Name", "SKU", "Category", "Quantity", "MinStock", "Unit", "Location", "Description"],
+      header: ["Name", "SKU", "Category", "Quantity", "MinStock", "Unit", "Location", "Price", "Description"],
     });
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Inventory");
@@ -413,6 +416,8 @@ export default function InventoryPage() {
             normalized.unit = value;
           } else if (normalizedKey === "location" || normalizedKey === "lokasi" || normalizedKey === "tempat") {
             normalized.location = value;
+          } else if (normalizedKey === "price" || normalizedKey === "harga" || normalizedKey === "cost") {
+            normalized.price = value;
           } else if (normalizedKey === "description" || normalizedKey === "deskripsi" || normalizedKey === "keterangan") {
             normalized.description = value;
           }
@@ -504,6 +509,7 @@ export default function InventoryPage() {
                   minStock: parseInt(row.minStock) || 10,
                   unit: row.unit || "pcs",
                   location: row.location || "",
+                  price: parseFloat(row.price) || 0,
                   description: row.description || "",
                 }),
               });
@@ -529,6 +535,7 @@ export default function InventoryPage() {
                 minStock: parseInt(row.minStock) || 10,
                 unit: row.unit || "pcs",
                 location: row.location || "",
+                price: parseFloat(row.price) || 0,
                 description: row.description || "",
               };
               
@@ -611,6 +618,7 @@ export default function InventoryPage() {
       minStock: item.minStock,
       unit: item.unit,
       location: item.location || "",
+      price: item.price || 0,
       description: item.description || "",
     });
     setShowNewCategoryInput(false);
@@ -805,6 +813,9 @@ export default function InventoryPage() {
                     Lokasi
                   </th>
                   <th className="text-right py-3 px-4 text-sm font-medium text-gray-600 dark:text-gray-400">
+                    Harga
+                  </th>
+                  <th className="text-right py-3 px-4 text-sm font-medium text-gray-600 dark:text-gray-400">
                     Actions
                   </th>
                 </tr>
@@ -848,6 +859,9 @@ export default function InventoryPage() {
                     </td>
                     <td className="py-3 px-4 text-sm text-gray-600 dark:text-gray-400">
                       {item.location || "-"}
+                    </td>
+                    <td className="py-3 px-4 text-sm text-gray-900 dark:text-white text-right font-medium">
+                      {item.price ? `Rp ${item.price.toLocaleString()}` : "-"}
                     </td>
                     <td className="py-3 px-4">
                       <div className="flex justify-end gap-2">
@@ -1023,6 +1037,17 @@ export default function InventoryPage() {
                 />
               </div>
               <div>
+                <label className="block text-sm font-medium mb-1">Harga (Rp)</label>
+                <input
+                  type="number"
+                  value={formData.price}
+                  onChange={(e) =>
+                    setFormData({ ...formData, price: parseInt(e.target.value) || 0 })
+                  }
+                  className="input-field"
+                />
+              </div>
+              <div>
                 <label className="block text-sm font-medium mb-1">
                   Deskripsi
                 </label>
@@ -1052,6 +1077,7 @@ export default function InventoryPage() {
                     minStock: 10,
                     unit: "pcs",
                     location: "",
+                    price: 0,
                     description: "",
                   });
                 }}

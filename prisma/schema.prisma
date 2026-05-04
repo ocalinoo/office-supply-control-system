@@ -44,6 +44,7 @@ model Item {
   minStock    Int      @default(10)
   unit        String   @default("pcs")
   location    String?
+  price       Float?   // Harga per unit
   description String?
   qrCode      String?
   createdAt   DateTime @default(now())

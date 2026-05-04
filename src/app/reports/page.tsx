@@ -66,18 +66,21 @@ export default function ReportsPage() {
       [`Digenerate pada: ${generatedDate}`],
       [], // Empty row
       // Table headers
-      ["No", "Nama Barang", "Kategori", "Stok Saat Ini", "Total Keluar"],
+      ["No", "Nama Barang", "Kategori", "Harga", "Stok Saat Ini", "Total Keluar", "Total Nilai"],
     ];
 
     // Add data rows
     if (reportData.top5 && reportData.top5.length > 0) {
       reportData.top5.forEach((item: any, index: number) => {
+        const totalNilai = (item.price || 0) * (item._count?.totalOut || 0);
         data.push([
           index + 1,
           item.name,
           item.category?.name || "-",
+          `Rp ${item.price?.toLocaleString() || "0"}`,
           item.quantity,
           item._count?.totalOut || 0,
+          `Rp ${totalNilai.toLocaleString()}`,
         ]);
       });
     } else {
@@ -93,8 +96,10 @@ export default function ReportsPage() {
       { wch: 5 },  // No
       { wch: 30 }, // Nama Barang
       { wch: 20 }, // Kategori
+      { wch: 15 }, // Harga
       { wch: 15 }, // Stok Saat Ini
       { wch: 15 }, // Total Keluar
+      { wch: 18 }, // Total Nilai
     ];
 
     // Merge cells for title

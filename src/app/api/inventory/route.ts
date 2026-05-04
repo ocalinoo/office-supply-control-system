@@ -93,6 +93,7 @@ export async function POST(request: NextRequest) {
         minStock: data.minStock || 10,
         unit: data.unit || "pcs",
         location: data.location,
+        price: data.price || 0,
         description: data.description,
       },
       include: {
