@@ -62,7 +62,7 @@ export async function GET(request: NextRequest) {
 
     // Group by itemId and count occurrences + total quantity
     const logMap = new Map<string, { count: number; totalQuantity: number; item: any }>();
-    
+
     for (const log of outLogs) {
       const existing = logMap.get(log.itemId);
       if (existing) {
@@ -78,9 +78,9 @@ export async function GET(request: NextRequest) {
     }
 
     // Convert to array and sort by total quantity (most consumed first)
-    const top5 = Array.from(logMap.values())
+    // Return ALL items that have OUT logs (not just top 5)
+    const allItems = Array.from(logMap.values())
       .sort((a, b) => b.totalQuantity - a.totalQuantity)
-      .slice(0, 5)
       .map(({ item, count, totalQuantity }) => ({
         ...item,
         _count: {
@@ -92,7 +92,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       type,
       period: `${startDate.toISOString()} - ${endDate.toISOString()}`,
-      top5,
+      top5: allItems, // Return all items (top5 is now all items with OUT logs)
       generatedAt: new Date().toISOString(),
     });
   } catch (error) {

@@ -15,7 +15,6 @@ export default function ReportsPage() {
   );
   const [loading, setLoading] = useState(false);
   const [reportData, setReportData] = useState<any>(null);
-  const [inventoryItems, setInventoryItems] = useState<any[]>([]);
 
   const generateReport = async () => {
     setLoading(true);
@@ -29,18 +28,6 @@ export default function ReportsPage() {
       if (res.ok) {
         const data = await res.json();
         setReportData(data);
-
-        // Fetch inventory items for the PDF
-        const invRes = await fetch("/api/inventory", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        if (invRes.ok) {
-          const invData = await invRes.json();
-          setInventoryItems(invData);
-        }
-
         toast.success("Report berhasil digenerate!");
       } else {
         toast.error("Gagal generate report");
@@ -73,28 +60,28 @@ export default function ReportsPage() {
     // Header/Title
     doc.setFontSize(18);
     doc.setTextColor(30, 64, 175);
-    doc.text("Laporan Inventaris OSCS", 14, 20);
-    
+    doc.text("Laporan Barang Keluar - OSCS", 14, 20);
+
     // Report type
     doc.setFontSize(12);
     doc.setTextColor(100, 100, 100);
     const reportTypeText = reportType === "DAILY" ? "Harian" : reportType === "WEEKLY" ? "Mingguan" : "Bulanan";
     doc.text(`Periode: ${reportTypeText}`, 14, 28);
-    
+
     // Generated date
     doc.setFontSize(10);
     doc.setTextColor(150, 150, 150);
     doc.text(`Digenerate pada: ${generatedDate}`, 14, 35);
 
-    // Top 5 Items Section
+    // Summary Section
     let yPos = 45;
     doc.setFontSize(14);
     doc.setTextColor(0, 0, 0);
-    doc.text("Top 5 Barang Paling Cepat Habis", 14, yPos);
+    doc.text("Ringkasan Barang Keluar", 14, yPos);
     yPos += 8;
 
     if (reportData.top5 && reportData.top5.length > 0) {
-      const top5Data = reportData.top5.map((item: any, index: number) => [
+      const summaryData = reportData.top5.map((item: any, index: number) => [
         `${index + 1}`,
         item.name,
         item.category?.name || "-",
@@ -104,8 +91,8 @@ export default function ReportsPage() {
 
       autoTable(doc, {
         startY: yPos,
-        head: [["No", "Nama Barang", "Kategori", "Stok", "Total Keluar"]],
-        body: top5Data,
+        head: [["No", "Nama Barang", "Kategori", "Stok Saat Ini", "Total Keluar"]],
+        body: summaryData,
         theme: "striped",
         headStyles: { fillColor: [30, 64, 175] },
         margin: { left: 14, right: 14 },
@@ -118,39 +105,8 @@ export default function ReportsPage() {
       yPos += 15;
     }
 
-    // All Inventory Items Section
-    doc.setFontSize(14);
-    doc.setTextColor(0, 0, 0);
-    doc.text("Daftar Barang Tersedia", 14, yPos);
-    yPos += 8;
-
-    if (inventoryItems.length > 0) {
-      const inventoryData = inventoryItems.map((item: any, index: number) => [
-        `${index + 1}`,
-        item.name,
-        item.sku,
-        item.category?.name || "-",
-        `${item.quantity} ${item.unit}`,
-        `${item.minStock}`,
-        item.location || "-",
-      ]);
-
-      autoTable(doc, {
-        startY: yPos,
-        head: [["No", "Nama Barang", "SKU", "Kategori", "Stok", "Min Stock", "Lokasi"]],
-        body: inventoryData,
-        theme: "striped",
-        headStyles: { fillColor: [30, 64, 175] },
-        margin: { left: 14, right: 14 },
-      });
-    } else {
-      doc.setFontSize(10);
-      doc.setTextColor(150, 150, 150);
-      doc.text("Tidak ada data inventory", 14, yPos);
-    }
-
     // Save PDF
-    doc.save(`report_${reportType.toLowerCase()}_${new Date().toISOString().split("T")[0]}.pdf`);
+    doc.save(`report_barang_keluar_${reportType.toLowerCase()}_${new Date().toISOString().split("T")[0]}.pdf`);
     toast.success("PDF berhasil diexport!");
   };
 
@@ -243,7 +199,7 @@ export default function ReportsPage() {
           <div className="card">
             <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-green-600" />
-              Top 5 Barang Paling Cepat Habis
+              Top 5 Barang Keluar Terbanyak
             </h2>
             <div className="space-y-3">
               {reportData.top5.map((item: any, index: number) => (
