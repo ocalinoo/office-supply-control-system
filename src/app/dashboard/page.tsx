@@ -119,21 +119,53 @@ export default function DashboardPage() {
                   cx="50%"
                   cy="50%"
                   labelLine={false}
-                  label={({ name, percent }) =>
-                    `${name}: ${(percent * 100).toFixed(0)}%`
-                  }
-                  outerRadius={80}
+                  // Hide labels on the chart to prevent overlapping
+                  label={false}
+                  outerRadius={100}
                   fill="#8884d8"
                   dataKey="value"
+                  paddingAngle={2}
                 >
                   {chartData.map((entry: any, index: number) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
-                <Tooltip />
-                <Legend />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: 'rgba(255, 255, 255, 0.95)', 
+                    border: 'none',
+                    borderRadius: '8px',
+                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                    padding: '12px'
+                  }}
+                  formatter={(value: number, name: string, props: any) => [
+                    `${value.toLocaleString()} items`,
+                    name
+                  ]}
+                />
+                <Legend 
+                  verticalAlign="bottom" 
+                  height={36}
+                  formatter={(value) => value}
+                />
               </PieChart>
             </ResponsiveContainer>
+            
+            {/* Summary below chart */}
+            <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <p className="text-gray-600 dark:text-gray-400">Total Categories</p>
+                  <p className="text-lg font-semibold text-gray-900 dark:text-white">{chartData.length}</p>
+                </div>
+                <div>
+                  <p className="text-gray-600 dark:text-gray-400">Total Stock</p>
+                  <p className="text-lg font-semibold text-gray-900 dark:text-white">
+                    {chartData.reduce((sum: number, item: any) => sum + item.value, 0).toLocaleString()}
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Quick Actions */}
