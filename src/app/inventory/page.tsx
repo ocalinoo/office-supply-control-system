@@ -755,21 +755,18 @@ export default function InventoryPage() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input
               type="text"
-              placeholder="Cari nama atau SKU..."
+              placeholder="Cari nama barang atau SKU..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="input-field pl-10"
+              className="input-field pl-10 text-base font-medium"
+              style={{ minWidth: "300px" }}
             />
           </div>
-          <div className="relative w-full sm:min-w-[200px]">
-            <div className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center pointer-events-none">
-              <Filter className="w-5 h-5 text-gray-400" />
-            </div>
+          <div className="relative w-full sm:w-[250px]">
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="input-field pl-10 w-full appearance-none cursor-pointer"
-              style={{ paddingRight: "2.5rem" }}
+              className="input-field w-full appearance-none cursor-pointer"
             >
               <option value="">Semua Kategori</option>
               {categories.map((cat) => (
