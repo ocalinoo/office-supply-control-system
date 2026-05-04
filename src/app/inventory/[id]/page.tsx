@@ -116,13 +116,15 @@ export default function InventoryItemPage() {
         },
         body: JSON.stringify({
           quantity: newQty,
-          qtyTaken: qtyToTake, // Send the amount taken for logging
+          qtyTaken: qtyToTake,
         }),
       });
 
       if (res.ok) {
         toast.success(`Berhasil mengambil ${qtyToTake} ${item.unit}! Stock sisa: ${newQty}`);
-        router.push("/inventory");
+        // Reset form and refresh the page to get updated data
+        setQtyToTake(0);
+        router.refresh();
       } else {
         const data = await res.json();
         toast.error(data.message || "Gagal update quantity");
@@ -157,7 +159,8 @@ export default function InventoryItemPage() {
 
       if (res.ok) {
         toast.success("Item berhasil diupdate!");
-        router.push("/inventory");
+        router.refresh();
+        setAction("view");
       } else {
         const data = await res.json();
         toast.error(data.message || "Gagal update item");
