@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams, useRouter, useParams } from "next/navigation";
 import DashboardLayout from "@/components/DashboardLayout";
 import { useAppStore } from "@/store/app-store";
 import toast from "react-hot-toast";
@@ -23,9 +23,10 @@ interface Item {
   };
 }
 
-export default function InventoryItemPage({ params }: { params: { id: string } }) {
+export default function InventoryItemPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const params = useParams();
   const { user, token } = useAppStore();
   const [item, setItem] = useState<Item | null>(null);
   const [loading, setLoading] = useState(true);
@@ -33,25 +34,36 @@ export default function InventoryItemPage({ params }: { params: { id: string } }
   const [action, setAction] = useState<"view" | "edit">("view");
 
   const isAdmin = user?.role === "ADMIN";
+  const itemId = params?.id as string;
 
   useEffect(() => {
+    if (!itemId) return;
+
     const fetchItem = async () => {
       try {
-        const res = await fetch(`/api/inventory/${params.id}`, {
+        console.log("Fetching item with ID:", itemId);
+        console.log("Token present:", !!token);
+        
+        const res = await fetch(`/api/inventory/${itemId}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
 
+        console.log("Response status:", res.status);
+
         if (res.ok) {
           const data = await res.json();
+          console.log("Item data:", data);
           setItem(data);
           setQuantity(data.quantity);
           // Admin langsung edit, user biasa view mode
           setAction(isAdmin ? "edit" : "view");
         } else {
-          toast.error("Item tidak ditemukan!");
-          setTimeout(() => router.push("/inventory"), 1500);
+          const errorData = await res.json();
+          console.error("API error:", errorData);
+          toast.error(`Item tidak ditemukan! (${res.status})`);
+          setTimeout(() => router.push("/inventory"), 2000);
         }
       } catch (error) {
         console.error("Error fetching item:", error);
@@ -63,7 +75,7 @@ export default function InventoryItemPage({ params }: { params: { id: string } }
 
     fetchItem();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [params.id, token]);
+  }, [itemId, token]);
 
   const handleUpdateQuantity = async () => {
     if (!item) return;
