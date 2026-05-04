@@ -30,7 +30,7 @@ export default function InventoryItemPage() {
   const { user, token, loadFromStorage, hasLoaded } = useAppStore();
   const [item, setItem] = useState<Item | null>(null);
   const [loading, setLoading] = useState(true);
-  const [quantity, setQuantity] = useState<number>(0);
+  const [qtyToTake, setQtyToTake] = useState<number>(0); // Jumlah yang diambil
   const [action, setAction] = useState<"view" | "edit">("view");
 
   const isAdmin = user?.role === "ADMIN";
@@ -67,7 +67,6 @@ export default function InventoryItemPage() {
           const data = await res.json();
           console.log("Item data:", data);
           setItem(data);
-          setQuantity(data.quantity);
           // Admin langsung edit, user biasa view mode
           setAction(isAdmin ? "edit" : "view");
         } else if (res.status === 401) {
@@ -95,7 +94,20 @@ export default function InventoryItemPage() {
   const handleUpdateQuantity = async () => {
     if (!item) return;
 
+    // Validate: qtyToTake tidak boleh lebih dari current stock
+    if (qtyToTake > item.quantity) {
+      toast.error(`Jumlah yang diambil tidak boleh melebihi stock (${item.quantity} ${item.unit})!`);
+      return;
+    }
+
+    if (qtyToTake <= 0) {
+      toast.error("Jumlah yang diambil harus lebih dari 0!");
+      return;
+    }
+
     try {
+      const newQty = item.quantity - qtyToTake;
+
       const res = await fetch(`/api/inventory/${item.id}`, {
         method: "PATCH",
         headers: {
@@ -103,12 +115,13 @@ export default function InventoryItemPage() {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          quantity,
+          quantity: newQty,
+          qtyTaken: qtyToTake, // Send the amount taken for logging
         }),
       });
 
       if (res.ok) {
-        toast.success("Quantity berhasil diupdate!");
+        toast.success(`Berhasil mengambil ${qtyToTake} ${item.unit}! Stock sisa: ${newQty}`);
         router.push("/inventory");
       } else {
         const data = await res.json();
@@ -223,27 +236,33 @@ export default function InventoryItemPage() {
             {/* Quantity Display */}
             <div className="text-center py-6">
               <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                Current Quantity
+                Current Stock
               </p>
               <p className="text-5xl font-bold text-gray-900 dark:text-white">
-                {quantity}
+                {item.quantity}
               </p>
               <p className="text-sm text-gray-500 dark:text-gray-500 mt-1">
                 {item.unit}
               </p>
             </div>
 
-            {/* Quantity Input */}
+            {/* Qty To Take Input */}
             <div>
               <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
-                Update Quantity
+                Jumlah yang diambil
               </label>
               <input
                 type="number"
-                value={quantity}
-                onChange={(e) => setQuantity(parseInt(e.target.value) || 0)}
+                value={qtyToTake}
+                onChange={(e) => setQtyToTake(parseInt(e.target.value) || 0)}
                 className="input-field text-center text-lg font-semibold"
+                placeholder="0"
+                min="0"
+                max={item.quantity}
               />
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 text-center">
+                Stock setelah pengambilan: <span className="font-semibold">{item.quantity - qtyToTake} {item.unit}</span>
+              </p>
             </div>
 
             {/* Additional Info */}
@@ -290,7 +309,7 @@ export default function InventoryItemPage() {
             </button>
           ) : (
             <button onClick={handleUpdateQuantity} className="flex-1 btn-primary">
-              Update Quantity
+              Ambil {qtyToTake > 0 ? qtyToTake : ''} {item.unit}
             </button>
           )}
         </div>

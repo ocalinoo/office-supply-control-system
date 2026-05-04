@@ -113,11 +113,27 @@ export async function PATCH(
           snapshot: JSON.stringify(oldItem),
         },
       });
+    }
 
-      // Create inventory log with correct action
-      const newQty = data.quantity !== undefined ? data.quantity : oldItem.quantity;
-      const qtyDiff = newQty - oldItem.quantity;
-      
+    // Create inventory log - always log when quantity changes
+    const newQty = data.quantity !== undefined ? data.quantity : oldItem.quantity;
+    const qtyDiff = newQty - oldItem.quantity;
+    
+    // If qtyTaken is provided, use it directly (stock taken by user)
+    const qtyTaken = data.qtyTaken;
+    
+    if (qtyTaken !== undefined && qtyTaken > 0) {
+      // Explicit stock take - log as OUT
+      await prisma.inventoryLog.create({
+        data: {
+          itemId: id,
+          action: "OUT",
+          quantity: qtyTaken,
+          previous: oldItem.quantity,
+        },
+      });
+    } else if (qtyDiff !== 0) {
+      // General quantity change
       let action = "ADJUSTMENT";
       if (qtyDiff < 0) {
         action = "OUT"; // Stock decreased
@@ -129,7 +145,7 @@ export async function PATCH(
         data: {
           itemId: id,
           action,
-          quantity: Math.abs(qtyDiff), // Record the absolute change amount
+          quantity: Math.abs(qtyDiff),
           previous: oldItem.quantity,
         },
       });
