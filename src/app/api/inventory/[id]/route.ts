@@ -2,6 +2,49 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifyToken } from "@/lib/auth";
 
+// GET - Fetch single item by ID
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const authHeader = request.headers.get("authorization");
+    const token = authHeader?.replace("Bearer ", "");
+
+    if (!token) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
+    const payload = verifyToken(token);
+    if (!payload) {
+      return NextResponse.json({ message: "Invalid token" }, { status: 401 });
+    }
+
+    const { id } = await params;
+
+    const item = await prisma.item.findUnique({
+      where: { id },
+      include: {
+        category: true,
+      },
+    });
+
+    if (!item) {
+      return NextResponse.json({ message: "Item not found" }, { status: 404 });
+    }
+
+    return NextResponse.json(item);
+  } catch (error) {
+    console.error("GET item error:", error);
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    return NextResponse.json(
+      { message: "Terjadi kesalahan: " + errorMessage },
+      { status: 500 }
+    );
+  }
+}
+
+// PATCH - Update item
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
