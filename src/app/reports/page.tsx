@@ -5,8 +5,7 @@ import { useState, useEffect } from "react";
 import { useAppStore } from "@/store/app-store";
 import toast from "react-hot-toast";
 import { FileDown, Calendar, TrendingUp, Package } from "lucide-react";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
+import * as XLSX from "xlsx";
 
 export default function ReportsPage() {
   const { user, token } = useAppStore();
@@ -48,7 +47,6 @@ export default function ReportsPage() {
   const exportReport = () => {
     if (!reportData) return;
 
-    const doc = new jsPDF();
     const generatedDate = new Date().toLocaleString("id-ID", {
       year: "numeric",
       month: "long",
@@ -57,57 +55,67 @@ export default function ReportsPage() {
       minute: "2-digit",
     });
 
-    // Header/Title
-    doc.setFontSize(18);
-    doc.setTextColor(30, 64, 175);
-    doc.text("Laporan Barang Keluar - OSCS", 14, 20);
-
-    // Report type
-    doc.setFontSize(12);
-    doc.setTextColor(100, 100, 100);
+    // Prepare data for Excel
     const reportTypeText = reportType === "DAILY" ? "Harian" : reportType === "WEEKLY" ? "Mingguan" : "Bulanan";
-    doc.text(`Periode: ${reportTypeText}`, 14, 28);
+    
+    // Create worksheet data
+    const data = [
+      // Header info
+      ["LAPORAN BARANG KELUAR - OSCS"],
+      [`Periode: ${reportTypeText}`],
+      [`Digenerate pada: ${generatedDate}`],
+      [], // Empty row
+      // Table headers
+      ["No", "Nama Barang", "Kategori", "Stok Saat Ini", "Total Keluar"],
+    ];
 
-    // Generated date
-    doc.setFontSize(10);
-    doc.setTextColor(150, 150, 150);
-    doc.text(`Digenerate pada: ${generatedDate}`, 14, 35);
-
-    // Summary Section - All items with OUT logs
-    let yPos = 45;
-    doc.setFontSize(14);
-    doc.setTextColor(0, 0, 0);
-    doc.text("Daftar Barang Keluar", 14, yPos);
-    yPos += 8;
-
+    // Add data rows
     if (reportData.top5 && reportData.top5.length > 0) {
-      const allItemsData = reportData.top5.map((item: any, index: number) => [
-        `${index + 1}`,
-        item.name,
-        item.category?.name || "-",
-        `${item.quantity}`,
-        `${item._count?.totalOut || 0}`,
-      ]);
-
-      autoTable(doc, {
-        startY: yPos,
-        head: [["No", "Nama Barang", "Kategori", "Stok Saat Ini", "Total Keluar"]],
-        body: allItemsData,
-        theme: "striped",
-        headStyles: { fillColor: [30, 64, 175] },
-        margin: { left: 14, right: 14 },
+      reportData.top5.forEach((item: any, index: number) => {
+        data.push([
+          index + 1,
+          item.name,
+          item.category?.name || "-",
+          item.quantity,
+          item._count?.totalOut || 0,
+        ]);
       });
-      yPos = (doc as any).lastAutoTable.finalY + 15;
     } else {
-      doc.setFontSize(10);
-      doc.setTextColor(150, 150, 150);
-      doc.text("Tidak ada data barang keluar pada periode ini", 14, yPos);
-      yPos += 15;
+      data.push(["Tidak ada data barang keluar pada periode ini"]);
     }
 
-    // Save PDF
-    doc.save(`report_barang_keluar_${reportType.toLowerCase()}_${new Date().toISOString().split("T")[0]}.pdf`);
-    toast.success("PDF berhasil diexport!");
+    // Create workbook and worksheet
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.aoa_to_sheet(data);
+
+    // Set column widths
+    ws['!cols'] = [
+      { wch: 5 },  // No
+      { wch: 30 }, // Nama Barang
+      { wch: 20 }, // Kategori
+      { wch: 15 }, // Stok Saat Ini
+      { wch: 15 }, // Total Keluar
+    ];
+
+    // Merge cells for title
+    ws['!merges'] = [
+      { s: { r: 0, c: 0 }, e: { r: 0, c: 4 } }, // Title row
+      { s: { r: 1, c: 0 }, e: { r: 1, c: 4 } }, // Period row
+      { s: { r: 2, c: 0 }, e: { r: 2, c: 4 } }, // Generated date row
+    ];
+
+    // Style header row (row 4 - index 3)
+    const range = XLSX.utils.decode_range(ws['!ref'] || "A1");
+    
+    // Add workbook
+    XLSX.utils.book_append_sheet(wb, ws, "Laporan Barang Keluar");
+
+    // Generate filename
+    const filename = `report_barang_keluar_${reportType.toLowerCase()}_${new Date().toISOString().split("T")[0]}.xlsx`;
+
+    // Download file
+    XLSX.writeFile(wb, filename);
+    toast.success("Excel berhasil diexport!");
   };
 
   return (
@@ -238,7 +246,7 @@ export default function ReportsPage() {
             <h2 className="text-lg font-semibold mb-4">Export Report</h2>
             <button onClick={exportReport} className="btn-primary flex items-center gap-2">
               <FileDown className="w-4 h-4" />
-              Export PDF
+              Export Excel
             </button>
           </div>
         )}
