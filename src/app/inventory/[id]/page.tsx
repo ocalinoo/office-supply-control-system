@@ -30,7 +30,7 @@ export default function InventoryItemPage() {
   const { user, token, loadFromStorage, hasLoaded } = useAppStore();
   const [item, setItem] = useState<Item | null>(null);
   const [loading, setLoading] = useState(true);
-  const [qtyToTake, setQtyToTake] = useState<number>(0); // Jumlah yang diambil
+  const [qtyToTake, setQtyToTake] = useState<string>(""); // String kosong, bukan number 0
   const [action, setAction] = useState<"view" | "edit">("view");
 
   const isAdmin = user?.role === "ADMIN";
@@ -94,19 +94,21 @@ export default function InventoryItemPage() {
   const handleUpdateQuantity = async () => {
     if (!item) return;
 
+    const qtyValue = parseInt(qtyToTake) || 0;
+
     // Validate: qtyToTake tidak boleh lebih dari current stock
-    if (qtyToTake > item.quantity) {
+    if (qtyValue > item.quantity) {
       toast.error(`Jumlah yang diambil tidak boleh melebihi stock (${item.quantity} ${item.unit})!`);
       return;
     }
 
-    if (qtyToTake <= 0) {
+    if (qtyValue <= 0) {
       toast.error("Jumlah yang diambil harus lebih dari 0!");
       return;
     }
 
     try {
-      const newQty = item.quantity - qtyToTake;
+      const newQty = item.quantity - qtyValue;
 
       const res = await fetch(`/api/inventory/${item.id}`, {
         method: "PATCH",
@@ -116,14 +118,14 @@ export default function InventoryItemPage() {
         },
         body: JSON.stringify({
           quantity: newQty,
-          qtyTaken: qtyToTake,
+          qtyTaken: qtyValue,
         }),
       });
 
       if (res.ok) {
-        toast.success(`Berhasil mengambil ${qtyToTake} ${item.unit}! Stock sisa: ${newQty}`);
+        toast.success(`Berhasil mengambil ${qtyValue} ${item.unit}! Stock sisa: ${newQty}`);
         // Reset form and refresh the page to get updated data
-        setQtyToTake(0);
+        setQtyToTake("");
         router.refresh();
       } else {
         const data = await res.json();
@@ -257,14 +259,14 @@ export default function InventoryItemPage() {
               <input
                 type="number"
                 value={qtyToTake}
-                onChange={(e) => setQtyToTake(parseInt(e.target.value) || 0)}
+                onChange={(e) => setQtyToTake(e.target.value)}
                 className="input-field text-center text-lg font-semibold"
                 placeholder="0"
                 min="0"
                 max={item.quantity}
               />
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 text-center">
-                Stock setelah pengambilan: <span className="font-semibold">{item.quantity - qtyToTake} {item.unit}</span>
+                Stock setelah pengambilan: <span className="font-semibold">{item.quantity - (parseInt(qtyToTake) || 0)} {item.unit}</span>
               </p>
             </div>
 
@@ -312,7 +314,7 @@ export default function InventoryItemPage() {
             </button>
           ) : (
             <button onClick={handleUpdateQuantity} className="flex-1 btn-primary">
-              Ambil {qtyToTake > 0 ? qtyToTake : ''} {item.unit}
+              Ambil {qtyToTake ? parseInt(qtyToTake) : ''} {item.unit}
             </button>
           )}
         </div>
