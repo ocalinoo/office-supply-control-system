@@ -27,7 +27,7 @@ export default function InventoryItemPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const params = useParams();
-  const { user, token } = useAppStore();
+  const { user, token, loadFromStorage, hasLoaded } = useAppStore();
   const [item, setItem] = useState<Item | null>(null);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState<number>(0);
@@ -36,8 +36,19 @@ export default function InventoryItemPage() {
   const isAdmin = user?.role === "ADMIN";
   const itemId = params?.id as string;
 
+  // Load token from localStorage on mount
   useEffect(() => {
-    if (!itemId) return;
+    loadFromStorage();
+  }, [loadFromStorage]);
+
+  useEffect(() => {
+    if (!itemId || !hasLoaded) return;
+    if (!token) {
+      console.log("No token found, redirecting to login");
+      toast.error("Session expired. Please login again.");
+      setTimeout(() => router.push("/login"), 1500);
+      return;
+    }
 
     const fetchItem = async () => {
       try {
@@ -59,6 +70,10 @@ export default function InventoryItemPage() {
           setQuantity(data.quantity);
           // Admin langsung edit, user biasa view mode
           setAction(isAdmin ? "edit" : "view");
+        } else if (res.status === 401) {
+          console.error("Unauthorized - token invalid/expired");
+          toast.error("Session expired. Please login again.");
+          setTimeout(() => router.push("/login"), 1500);
         } else {
           const errorData = await res.json();
           console.error("API error:", errorData);
@@ -75,7 +90,7 @@ export default function InventoryItemPage() {
 
     fetchItem();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [itemId, token]);
+  }, [itemId, token, hasLoaded]);
 
   const handleUpdateQuantity = async () => {
     if (!item) return;
