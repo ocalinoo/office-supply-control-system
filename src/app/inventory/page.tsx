@@ -226,6 +226,7 @@ export default function InventoryPage() {
           minStock: 10,
           unit: "pcs",
           location: "",
+          price: 0,
           description: "",
         });
       } else if (res.status === 400) {
