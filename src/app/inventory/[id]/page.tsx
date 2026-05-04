@@ -147,7 +147,7 @@ export default function InventoryItemPage() {
           name: item.name,
           sku: item.sku,
           categoryId: item.category.id,
-          quantity,
+          quantity: item.quantity,
           minStock: item.minStock,
           unit: item.unit,
           location: item.location,
