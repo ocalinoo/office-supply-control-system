@@ -144,25 +144,19 @@ export default function InventoryPage() {
 
   const handleScan = async (data: string) => {
     setShowScanner(false);
-    
+
     // Check if data is a URL (from QR code) or SKU
-    let sku = data;
+    let itemId = data;
+    
+    // Extract item ID from URL if scanned from QR code
+    // Handle both full URL (https://.../inventory/[id]) and relative path (/inventory/[id])
     if (data.includes('/inventory/')) {
-      sku = data.split('/inventory/')[1];
+      const parts = data.split('/inventory/');
+      itemId = parts[parts.length - 1].split('/')[0]; // Get ID and remove any trailing path/query
     }
-    
-    // Find item by SKU
-    const foundItem = items.find(item => item.sku === sku || item.id === sku);
-    
-    if (foundItem) {
-      if (isAdmin) {
-        openEditModal(foundItem);
-      } else {
-        openQRModal(foundItem);
-      }
-    } else {
-      toast.error("Barang tidak ditemukan!");
-    }
+
+    // Redirect to the item page (works for both in-app scanner and external barcode scanner)
+    window.location.href = `/inventory/${itemId}`;
   };
 
   const handleAddItem = async () => {
