@@ -73,15 +73,15 @@ export default function ReportsPage() {
     doc.setTextColor(150, 150, 150);
     doc.text(`Digenerate pada: ${generatedDate}`, 14, 35);
 
-    // Summary Section
+    // Summary Section - All items with OUT logs
     let yPos = 45;
     doc.setFontSize(14);
     doc.setTextColor(0, 0, 0);
-    doc.text("Ringkasan Barang Keluar", 14, yPos);
+    doc.text("Daftar Barang Keluar", 14, yPos);
     yPos += 8;
 
     if (reportData.top5 && reportData.top5.length > 0) {
-      const summaryData = reportData.top5.map((item: any, index: number) => [
+      const allItemsData = reportData.top5.map((item: any, index: number) => [
         `${index + 1}`,
         item.name,
         item.category?.name || "-",
@@ -92,7 +92,7 @@ export default function ReportsPage() {
       autoTable(doc, {
         startY: yPos,
         head: [["No", "Nama Barang", "Kategori", "Stok Saat Ini", "Total Keluar"]],
-        body: summaryData,
+        body: allItemsData,
         theme: "striped",
         headStyles: { fillColor: [30, 64, 175] },
         margin: { left: 14, right: 14 },
