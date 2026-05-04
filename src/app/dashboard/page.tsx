@@ -3,7 +3,7 @@
 import DashboardLayout from "@/components/DashboardLayout";
 import { useStats, useCategories } from "@/hooks/useData";
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts";
-import { Package, AlertTriangle, TrendingUp, Users } from "lucide-react";
+import { Package, AlertTriangle, TrendingUp, Users, DollarSign, TrendingDown } from "lucide-react";
 import Link from "next/link";
 
 const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899", "#06b6d4", "#84cc16"];
@@ -103,6 +103,46 @@ export default function DashboardPage() {
               </div>
             </div>
           </Link>
+        </div>
+
+        {/* Cost Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="card hover:shadow-xl transition-shadow">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Total Cost Stock
+                </p>
+                <p className="text-3xl font-bold text-gray-900 dark:text-white mt-1">
+                  Rp {(stats?.totalCostStock || 0).toLocaleString()}
+                </p>
+              </div>
+              <div className="bg-green-100 p-3 rounded-lg">
+                <DollarSign className="w-6 h-6 text-green-600" />
+              </div>
+            </div>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+              Nilai total dari semua stock saat ini
+            </p>
+          </div>
+          <div className="card hover:shadow-xl transition-shadow">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Pengeluaran Hari Ini
+                </p>
+                <p className="text-3xl font-bold text-gray-900 dark:text-white mt-1">
+                  Rp {(stats?.todayOutcome || 0).toLocaleString()}
+                </p>
+              </div>
+              <div className="bg-red-100 p-3 rounded-lg">
+                <TrendingDown className="w-6 h-6 text-red-600" />
+              </div>
+            </div>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+              Total nilai barang keluar hari ini
+            </p>
+          </div>
         </div>
 
         {/* Chart & Quick Actions */}

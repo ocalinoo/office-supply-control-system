@@ -83,6 +83,10 @@ export default function ReportsPage() {
           `Rp ${totalNilai.toLocaleString()}`,
         ]);
       });
+
+      // Add summary row
+      data.push([]); // Empty row
+      data.push(["", "", "", "", "", "TOTAL COST:", `Rp ${reportData.totalCost?.toLocaleString() || "0"}`]);
     } else {
       data.push(["Tidak ada data barang keluar pada periode ini"]);
     }
@@ -102,17 +106,13 @@ export default function ReportsPage() {
       { wch: 18 }, // Total Nilai
     ];
 
-    // Merge cells for title
+    // Merge cells for title and summary
     ws['!merges'] = [
       { s: { r: 0, c: 0 }, e: { r: 0, c: 4 } }, // Title row
       { s: { r: 1, c: 0 }, e: { r: 1, c: 4 } }, // Period row
       { s: { r: 2, c: 0 }, e: { r: 2, c: 4 } }, // Generated date row
+      { s: { r: data.length - 1, c: 5 }, e: { r: data.length - 1, c: 6 } }, // TOTAL COST merge
     ];
-
-    // Style header row (row 4 - index 3)
-    const range = XLSX.utils.decode_range(ws['!ref'] || "A1");
-    
-    // Add workbook
     XLSX.utils.book_append_sheet(wb, ws, "Laporan Barang Keluar");
 
     // Generate filename
@@ -180,20 +180,27 @@ export default function ReportsPage() {
                 <strong>Periode:</strong> {reportType === "DAILY" ? "Hari Ini" : reportType === "WEEKLY" ? "Minggu Ini" : "Bulan Ini"}
               </p>
               <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-                {new Date(reportData.period.split(" - ")[0]).toLocaleDateString("id-ID", { 
-                  weekday: "long", 
-                  year: "numeric", 
-                  month: "long", 
-                  day: "numeric" 
+                {new Date(reportData.period.split(" - ")[0]).toLocaleDateString("id-ID", {
+                  weekday: "long",
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric"
                 })}{" "}
                 -{" "}
-                {new Date(reportData.period.split(" - ")[1]).toLocaleDateString("id-ID", { 
-                  weekday: "long", 
-                  year: "numeric", 
-                  month: "long", 
-                  day: "numeric" 
+                {new Date(reportData.period.split(" - ")[1]).toLocaleDateString("id-ID", {
+                  weekday: "long",
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric"
                 })}
               </p>
+              {reportData.totalCost !== undefined && (
+                <div className="mt-3 pt-3 border-t border-gray-300 dark:border-gray-600">
+                  <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                    Total Pengeluaran: <span className="text-green-600">Rp {reportData.totalCost.toLocaleString()}</span>
+                  </p>
+                </div>
+              )}
             </div>
           )}
 

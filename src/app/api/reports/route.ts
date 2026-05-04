@@ -89,10 +89,16 @@ export async function GET(request: NextRequest) {
         },
       }));
 
+    // Calculate total cost for the period
+    const totalCost = Array.from(logMap.values()).reduce((sum, { item, totalQuantity }) => {
+      return sum + ((item.price || 0) * totalQuantity);
+    }, 0);
+
     return NextResponse.json({
       type,
       period: `${startDate.toISOString()} - ${endDate.toISOString()}`,
       top5: allItems, // Return all items (top5 is now all items with OUT logs)
+      totalCost,
       generatedAt: new Date().toISOString(),
     });
   } catch (error) {
